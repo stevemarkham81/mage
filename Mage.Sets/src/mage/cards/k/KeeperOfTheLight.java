@@ -38,8 +38,14 @@ import mage.abilities.Ability;
 import mage.abilities.condition.Condition;
 import mage.abilities.costs.common.TapSourceCost;
 import mage.abilities.costs.mana.ManaCostsImpl;
+import mage.abilities.decorator.ConditionalActivatedAbility;
 import mage.abilities.effects.common.GainLifeEffect;
+import mage.filter.FilterPlayer;
+import mage.filter.predicate.ObjectSourcePlayer;
+import mage.filter.predicate.ObjectSourcePlayerPredicate;
+import mage.game.Game;
 import mage.players.Player;
+import mage.target.TargetPlayer;
 import mage.target.common.TargetOpponent;
 
 /**
@@ -47,12 +53,6 @@ import mage.target.common.TargetOpponent;
  * @author stevemarkham81
  */
 public class KeeperOfTheLight extends CardImpl {
-
-    private static final FilterPlayer filter = new FilterPlayer();
-
-    static {
-        filter.add(new OathOfMagesPredicate());
-    }
 
     public KeeperOfTheLight(UUID ownerId, CardSetInfo setInfo) {
         super(ownerId, setInfo, new CardType[]{CardType.CREATURE}, "{W}{W}");
@@ -70,7 +70,9 @@ public class KeeperOfTheLight extends CardImpl {
 		new KeeperOfTheLightCondition(),
 		"{W}, {tap}: Choose target opponent who had more life than you did as you activated this ability. You gain 3 life.");
 	ability.addCost(new TapSourceCost());
-	ability.addTarget(new TargetOpponent());
+        FilterPlayer filter = new FilterPlayer();
+        filter.add(new KeeperOfTheLightPredicate(ability));
+	ability.addTarget(new TargetPlayer(1, 1, false, filter));
 	this.addAbility(ability);
     }
 
@@ -93,8 +95,41 @@ class KeeperOfTheLightCondition implements Condition {
 	boolean conditionApplies = false;
 	for ( UUID opponentUUID : game.getOpponents(source.getControllerId()) ) {
             conditionApplies |= (game.getPlayer(opponentUUID).getLife() > lifeTotal &&
-		game.getPlayer(opponentUUID).canBeTargetedBy(source, source.getControllerId(), game));
+		game.getPlayer(opponentUUID).canBeTargetedBy(source.getSourceObject(game), source.getControllerId(), game));
         }
-	return 
+	return conditionApplies;
+    }
+}
 
+class KeeperOfTheLightPredicate implements ObjectSourcePlayerPredicate<ObjectSourcePlayer<Player>> {
+
+    private final Ability ability;
+    
+    public KeeperOfTheLightPredicate(Ability ability) {
+        super();
+        this.ability = ability;
+    }
+    
+    @Override
+    public boolean apply(ObjectSourcePlayer<Player> input, Game game) {
+        Player potentialTarget = input.getObject();
+        UUID playerId = input.getPlayerId();
+        if (potentialTarget == null || playerId == null) {
+            return false;
+        }
+
+        int opponentLife = potentialTarget.getLife();
+        int controllerLife = game.getPlayer(playerId).getLife();
+        boolean activated = this.ability.isActivated();
+        boolean isSelf = potentialTarget.getId().equals(playerId);
+        boolean isOpponent = game.getPlayer(playerId).hasOpponent(potentialTarget.getId(), game);
+        boolean hasMoreLife = controllerLife<opponentLife;
+        boolean rValue = (!isSelf && isOpponent && (activated || hasMoreLife));
+        return rValue;
+    }
+    
+        @Override
+    public String toString() {
+        return "opponent who had more life than you did as you activated this ability";
+    }
 }
