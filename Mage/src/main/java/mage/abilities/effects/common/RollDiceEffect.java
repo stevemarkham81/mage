@@ -74,19 +74,8 @@ public class RollDiceEffect extends OneShotEffect {
         Player controller = game.getPlayer(source.getControllerId());
         MageObject mageObject = game.getObject(source.getSourceId());
         if (controller != null && mageObject != null) {
-            boolean result = true;
-            for (Effect effect : executingEffects) {
-                int rolled = controller.rollDice(game, numSides);
-                effect.setTargetPointer(this.targetPointer);
-                effect.setValue("rolled", rolled);
-                this.setValue("rolled", rolled);
-                if (effect instanceof OneShotEffect) {
-                    result &= effect.apply(game, source);
-                } else {
-                    game.addEffect((ContinuousEffect) effect, source);
-                }
-            }
-            return result;
+            controller.rollDice(game, numSides);                
+            return true;
         }
         return false;
     }
@@ -96,7 +85,7 @@ public class RollDiceEffect extends OneShotEffect {
         if (!staticText.isEmpty()) {
             return staticText;
         }
-        StringBuilder sb = new StringBuilder("Roll a " + numSides + " sided dice and then ").append(executingEffects.getText(mode));
+        StringBuilder sb = new StringBuilder("Roll a " + numSides + " sided dice");
         return sb.toString();
     }
 

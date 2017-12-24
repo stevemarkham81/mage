@@ -66,6 +66,7 @@ public class Legends extends ExpansionSet {
         cards.add(new SetCardInfo("Amrou Kithkin", 172, Rarity.COMMON, mage.cards.a.AmrouKithkin.class));
         cards.add(new SetCardInfo("Angelic Voices", 173, Rarity.RARE, mage.cards.a.AngelicVoices.class));
         cards.add(new SetCardInfo("Angus Mackenzie", 257, Rarity.RARE, mage.cards.a.AngusMackenzie.class));
+        cards.add(new SetCardInfo("Arboria", 88, Rarity.UNCOMMON, mage.cards.a.Arboria.class));
         cards.add(new SetCardInfo("Arcades Sabboth", 258, Rarity.RARE, mage.cards.a.ArcadesSabboth.class));
         cards.add(new SetCardInfo("Arena of the Ancients", 215, Rarity.RARE, mage.cards.a.ArenaOfTheAncients.class));
         cards.add(new SetCardInfo("Avoid Fate", 89, Rarity.COMMON, mage.cards.a.AvoidFate.class));
@@ -129,6 +130,7 @@ public class Legends extends ExpansionSet {
         cards.add(new SetCardInfo("Giant Strength", 147, Rarity.COMMON, mage.cards.g.GiantStrength.class));
         cards.add(new SetCardInfo("Giant Turtle", 102, Rarity.COMMON, mage.cards.g.GiantTurtle.class));
         cards.add(new SetCardInfo("Glyph of Destruction", 148, Rarity.COMMON, mage.cards.g.GlyphOfDestruction.class));
+        cards.add(new SetCardInfo("Glyph of Life", 184, Rarity.COMMON, mage.cards.g.GlyphOfLife.class));
         cards.add(new SetCardInfo("Gravity Sphere", 149, Rarity.RARE, mage.cards.g.GravitySphere.class));
         cards.add(new SetCardInfo("Great Defender", 185, Rarity.UNCOMMON, mage.cards.g.GreatDefender.class));
         cards.add(new SetCardInfo("Greater Realm of Preservation", 187, Rarity.UNCOMMON, mage.cards.g.GreaterRealmOfPreservation.class));
@@ -232,6 +234,7 @@ public class Legends extends ExpansionSet {
         cards.add(new SetCardInfo("Rubinia Soulsinger", 296, Rarity.RARE, mage.cards.r.RubiniaSoulsinger.class));
         cards.add(new SetCardInfo("Rust", 49, Rarity.COMMON, mage.cards.r.Rust.class));
         cards.add(new SetCardInfo("Sea Kings' Blessing", 75, Rarity.UNCOMMON, mage.cards.s.SeaKingsBlessing.class));
+        cards.add(new SetCardInfo("Seeker", 204, Rarity.UNCOMMON, mage.cards.s.Seeker.class));
         cards.add(new SetCardInfo("Segovian Leviathan", 76, Rarity.UNCOMMON, mage.cards.s.SegovianLeviathan.class));
         cards.add(new SetCardInfo("Sentinel", 239, Rarity.RARE, mage.cards.s.Sentinel.class));
         cards.add(new SetCardInfo("Serpent Generator", 240, Rarity.RARE, mage.cards.s.SerpentGenerator.class));

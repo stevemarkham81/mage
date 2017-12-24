@@ -52,9 +52,11 @@ import mage.game.combat.CombatGroup;
 import mage.game.command.CommandObject;
 import mage.game.events.*;
 import mage.game.events.GameEvent.EventType;
+import mage.game.permanent.token.SquirrelToken;
 import mage.game.stack.Spell;
 import mage.game.stack.StackObject;
 import mage.players.Player;
+import mage.util.CardUtil;
 import mage.util.GameLog;
 import mage.util.ThreadLocalStringBuilder;
 
@@ -802,6 +804,11 @@ public abstract class PermanentImpl extends CardImpl implements Permanent {
                     if (dealtDamageByThisTurn == null) {
                         dealtDamageByThisTurn = new HashSet<>();
                     }
+                    // Unstable ability - Earl of Squirrel
+                    if (sourceAbilities.containsKey(SquirrellinkAbility.getInstance().getId())) {
+                        Player player = game.getPlayer(sourceControllerId);
+                        new SquirrelToken().putOntoBattlefield(damageDone, game, sourceId, player.getId());
+                    }
                     dealtDamageByThisTurn.add(new MageObjectReference(source, game));
                 }
                 if (source == null) {
@@ -881,7 +888,8 @@ public abstract class PermanentImpl extends CardImpl implements Permanent {
                         addCounters(CounterType.M1M1.createInstance(actualDamage), damageSourceAbility, game);
                     }
                 } else {
-                    this.damage += actualDamage;
+                    // this.damage += actualDamage;
+                    this.damage = CardUtil.addWithOverflowCheck(this.damage, actualDamage);
                 }
                 game.fireEvent(new DamagedCreatureEvent(objectId, sourceId, controllerId, actualDamage, combat));
                 return actualDamage;

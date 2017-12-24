@@ -62,6 +62,8 @@ import static mage.constants.Zone.LIBRARY;
 import mage.counters.Counter;
 import mage.counters.CounterType;
 import mage.counters.Counters;
+import mage.designations.Designation;
+import mage.designations.DesignationType;
 import mage.filter.FilterCard;
 import mage.filter.FilterPermanent;
 import mage.filter.common.FilterControlledPermanent;
@@ -80,6 +82,7 @@ import mage.game.events.ZoneChangeEvent;
 import mage.game.match.MatchPlayer;
 import mage.game.permanent.Permanent;
 import mage.game.permanent.PermanentCard;
+import mage.game.permanent.token.SquirrelToken;
 import mage.game.stack.Spell;
 import mage.game.stack.StackAbility;
 import mage.game.stack.StackObject;
@@ -198,6 +201,8 @@ public abstract class PlayerImpl implements Player, Serializable {
     protected UserData userData;
     protected MatchPlayer matchPlayer;
 
+    protected List<Designation> designations = new ArrayList<>();
+
     /**
      * During some steps we can't play anything
      */
@@ -299,6 +304,8 @@ public abstract class PlayerImpl implements Player, Serializable {
         this.castSourceIdManaCosts = player.castSourceIdManaCosts;
         this.castSourceIdCosts = player.castSourceIdCosts;
         this.payManaMode = player.payManaMode;
+
+        this.designations.addAll(player.designations);
     }
 
     @Override
@@ -361,6 +368,9 @@ public abstract class PlayerImpl implements Player, Serializable {
         this.castSourceIdWithAlternateMana = player.getCastSourceIdWithAlternateMana();
         this.castSourceIdManaCosts = player.getCastSourceIdManaCosts();
         this.castSourceIdCosts = player.getCastSourceIdCosts();
+
+        this.designations.clear();
+        this.designations.addAll(player.getDesignations());
 
         // Don't restore!
         // this.storedBookmark
@@ -434,6 +444,8 @@ public abstract class PlayerImpl implements Player, Serializable {
         this.castSourceIdManaCosts = null;
         this.castSourceIdCosts = null;
         this.getManaPool().init(); // needed to remove mana that not empties on step change from previous game if left
+
+        this.designations.clear();
     }
 
     /**
@@ -1747,7 +1759,8 @@ public abstract class PlayerImpl implements Player, Serializable {
         }
         GameEvent event = new GameEvent(GameEvent.EventType.LOSE_LIFE, playerId, playerId, playerId, amount, atCombat);
         if (!game.replaceEvent(event)) {
-            this.life -= event.getAmount();
+            // this.life -= event.getAmount();
+            this.life = CardUtil.subtractWithOverflowCheck(this.life, event.getAmount());
             if (!game.isSimulation()) {
                 game.informPlayers(this.getLogName() + " loses " + event.getAmount() + " life");
             }
@@ -1776,7 +1789,10 @@ public abstract class PlayerImpl implements Player, Serializable {
         }
         GameEvent event = new GameEvent(GameEvent.EventType.GAIN_LIFE, playerId, playerId, playerId, amount, false);
         if (!game.replaceEvent(event)) {
-            this.life += event.getAmount();
+            // TODO: lock life at Integer.MAX_VALUE if reached, until it's set to a different amount
+            // (https://magic.wizards.com/en/articles/archive/news/unstable-faqawaslfaqpaftidawabiajtbt-2017-12-06 - "infinite" life total stays infinite no matter how much is gained or lost)
+            // this.life += event.getAmount();
+            this.life = CardUtil.addWithOverflowCheck(this.life, event.getAmount());
             if (!game.isSimulation()) {
                 game.informPlayers(this.getLogName() + " gains " + event.getAmount() + " life");
             }
@@ -1840,6 +1856,11 @@ public abstract class PlayerImpl implements Player, Serializable {
                         if (sourceAbilities != null && sourceAbilities.containsKey(LifelinkAbility.getInstance().getId())) {
                             Player player = game.getPlayer(sourceControllerId);
                             player.gainLife(actualDamage, game);
+                        }
+                        // Unstable ability - Earl of Squirrel
+                        if (sourceAbilities.containsKey(SquirrellinkAbility.getInstance().getId())) {
+                            Player player = game.getPlayer(sourceControllerId);
+                            new SquirrelToken().putOntoBattlefield(actualDamage, game, sourceId, player.getId());
                         }
                         game.fireEvent(new DamagedPlayerEvent(playerId, sourceId, playerId, actualDamage, combatDamage));
                         return actualDamage;
@@ -2312,7 +2333,7 @@ public abstract class PlayerImpl implements Player, Serializable {
     public boolean flipCoin(Game game) {
         return this.flipCoin(game, null);
     }
-    
+
     /**
      * @param game
      * @param appliedEffects
@@ -2331,7 +2352,7 @@ public abstract class PlayerImpl implements Player, Serializable {
         }
         return event.getFlag();
     }
-    
+
     @Override
     public int rollDice(Game game, int numSides) {
         return this.rollDice(game, null, numSides);
@@ -2344,17 +2365,20 @@ public abstract class PlayerImpl implements Player, Serializable {
      */
     @Override
     public int rollDice(Game game, ArrayList<UUID> appliedEffects, int numSides) {
-        int result = RandomUtil.nextInt(numSides) + 1;        
+        int result = RandomUtil.nextInt(numSides) + 1;
         if (!game.isSimulation()) {
-            game.informPlayers("[Roll a dice] " + getLogName() + " rolled a " + result + " on a " + numSides + " sided dice");
+            game.informPlayers("[Roll a die] " + getLogName() + " rolled a " + result + " on a " + numSides + " sided dice");
         }
         GameEvent event = new GameEvent(GameEvent.EventType.ROLL_DICE, playerId, null, playerId, result, true);
         event.setAppliedEffects(appliedEffects);
         event.setAmount(result);
+        event.setData(numSides + "");
         if (!game.replaceEvent(event)) {
-            game.fireEvent(new GameEvent(GameEvent.EventType.DICE_ROLLED, playerId, null, playerId, result, event.getFlag()));
+            GameEvent ge = new GameEvent(GameEvent.EventType.DICE_ROLLED, playerId, null, playerId, event.getAmount(), event.getFlag());
+            ge.setData(numSides + "");
+            game.fireEvent(ge);
         }
-        return result;
+        return event.getAmount();
     }
 
     @Override
@@ -3611,9 +3635,7 @@ public abstract class PlayerImpl implements Player, Serializable {
     }
 
     @Override
-    public boolean scry(int value, Ability source,
-            Game game
-    ) {
+    public boolean scry(int value, Ability source, Game game) {
         game.informPlayers(getLogName() + " scries " + value);
         Cards cards = new CardsImpl();
         cards.addAll(getLibrary().getTopCards(game, value));
@@ -3646,4 +3668,25 @@ public abstract class PlayerImpl implements Player, Serializable {
         return "no available";
     }
 
+    @Override
+    public boolean hasDesignation(DesignationType designationName) {
+        for (Designation designation : designations) {
+            if (designation.getDesignationType().equals(designationName)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public void addDesignation(Designation designation) {
+        if (!designation.isUnique() || !this.hasDesignation(designation.getDesignationType())) {
+            designations.add(designation);
+        }
+    }
+
+    @Override
+    public List<Designation> getDesignations() {
+        return designations;
+    }
 }
