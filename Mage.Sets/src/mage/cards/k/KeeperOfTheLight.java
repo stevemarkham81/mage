@@ -27,6 +27,9 @@
  */
 package mage.cards.k;
 
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
 import java.util.UUID;
 import mage.MageInt;
 import mage.constants.SubType;
@@ -71,7 +74,7 @@ public class KeeperOfTheLight extends CardImpl {
 		"{W}, {tap}: Choose target opponent who had more life than you did as you activated this ability. You gain 3 life.");
 	ability.addCost(new TapSourceCost());
         FilterPlayer filter = new FilterPlayer();
-        filter.add(new KeeperOfTheLightPredicate(ability));
+        filter.add(new KeeperOfTheLightPredicate(game, ability));
 	ability.addTarget(new TargetPlayer(1, 1, false, filter));
 	this.addAbility(ability);
     }
@@ -104,28 +107,27 @@ class KeeperOfTheLightCondition implements Condition {
 class KeeperOfTheLightPredicate implements ObjectSourcePlayerPredicate<ObjectSourcePlayer<Player>> {
 
     private final Ability ability;
+    private final Set<UUID> validOpponents = new HashSet<>();
     
-    public KeeperOfTheLightPredicate(Ability ability) {
+    public KeeperOfTheLightPredicate(Game game, Ability source) {
         super();
-        this.ability = ability;
+        this.ability = source;
+        int controllerLife = game.getPlayer(source.getControllerId()).getLife();
+        for (UUID opponentUUID : game.getOpponents(source.getControllerId())) {
+            if (game.getPlayer(opponentUUID).getLife() > controllerLife) {
+                this.validOpponents.add(opponentUUID);
+            }
+        }
     }
     
     @Override
     public boolean apply(ObjectSourcePlayer<Player> input, Game game) {
         Player potentialTarget = input.getObject();
         UUID playerId = input.getPlayerId();
-        if (potentialTarget == null || playerId == null) {
+        if (potentialTarget == null || playerId == null ) {
             return false;
         }
-
-        int opponentLife = potentialTarget.getLife();
-        int controllerLife = game.getPlayer(playerId).getLife();
-        boolean activated = this.ability.isActivated();
-        boolean isSelf = potentialTarget.getId().equals(playerId);
-        boolean isOpponent = game.getPlayer(playerId).hasOpponent(potentialTarget.getId(), game);
-        boolean hasMoreLife = controllerLife<opponentLife;
-        boolean rValue = (!isSelf && isOpponent && (activated || hasMoreLife));
-        return rValue;
+        return this.validOpponents.contains(potentialTarget.getId());
     }
     
         @Override
