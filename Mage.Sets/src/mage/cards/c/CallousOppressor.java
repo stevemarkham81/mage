@@ -27,9 +27,7 @@
  */
 package mage.cards.c;
 
-import java.util.LinkedHashSet;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import mage.MageInt;
 import mage.MageObject;
 import mage.abilities.Ability;
@@ -44,7 +42,7 @@ import mage.abilities.effects.common.continuous.GainControlTargetEffect;
 import mage.cards.CardImpl;
 import mage.cards.CardSetInfo;
 import mage.choices.Choice;
-import mage.choices.ChoiceImpl;
+import mage.choices.ChoiceCreatureType;
 import mage.constants.CardType;
 import mage.constants.SubType;
 import mage.constants.Duration;
@@ -65,7 +63,7 @@ import mage.util.CardUtil;
 public class CallousOppressor extends CardImpl {
 
     public CallousOppressor(UUID ownerId, CardSetInfo setInfo) {
-        super(ownerId,setInfo,new CardType[]{CardType.CREATURE},"{1}{U}{U}");
+        super(ownerId, setInfo, new CardType[]{CardType.CREATURE}, "{1}{U}{U}");
         this.subtype.add(SubType.CEPHALID);
         this.power = new MageInt(1);
         this.toughness = new MageInt(2);
@@ -97,20 +95,20 @@ public class CallousOppressor extends CardImpl {
 }
 
 class CallousOppressorFilter extends FilterCreaturePermanent {
-    
+
     public CallousOppressorFilter() {
         super("creature that isn't of the chosen type");
     }
-    
+
     public CallousOppressorFilter(final CallousOppressorFilter filter) {
         super(filter);
     }
-    
+
     @Override
     public CallousOppressorFilter copy() {
         return new CallousOppressorFilter(this);
     }
-    
+
     @Override
     public boolean match(Permanent permanent, UUID sourceId, UUID playerId, Game game) {
         if (super.match(permanent, sourceId, playerId, game)) {
@@ -122,7 +120,7 @@ class CallousOppressorFilter extends FilterCreaturePermanent {
         }
         return false;
     }
-    
+
 }
 
 class CallousOppressorChooseCreatureTypeEffect extends OneShotEffect {
@@ -154,13 +152,10 @@ class CallousOppressorChooseCreatureTypeEffect extends OneShotEffect {
             }
             Player opponent = game.getPlayer(target.getFirstTarget());
             if (opponent != null && mageObject != null) {
-                Choice typeChoice = new ChoiceImpl(true);
+                Choice typeChoice = new ChoiceCreatureType(mageObject);
                 typeChoice.setMessage("Choose creature type");
-                typeChoice.setChoices(SubType.getCreatureTypes(false).stream().map(SubType::toString).collect(Collectors.toCollection(LinkedHashSet::new)));
-                while (!opponent.choose(outcome, typeChoice, game)) {
-                    if (!opponent.canRespond()) {
-                        return false;
-                    }
+                if (!opponent.choose(outcome, typeChoice, game)) {
+                    return false;
                 }
                 if (typeChoice.getChoice() == null) {
                     return false;

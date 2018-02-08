@@ -124,6 +124,7 @@ public class MastersEditionIII extends ExpansionSet {
         cards.add(new SetCardInfo("Forest", 229, Rarity.LAND, mage.cards.basiclands.Forest.class, NON_FULL_USE_VARIOUS));
         cards.add(new SetCardInfo("Forest", 230, Rarity.LAND, mage.cards.basiclands.Forest.class, NON_FULL_USE_VARIOUS));
         cards.add(new SetCardInfo("Frost Giant", 101, Rarity.UNCOMMON, mage.cards.f.FrostGiant.class));
+        cards.add(new SetCardInfo("Gabriel Angelfire", 148, Rarity.RARE, mage.cards.g.GabrielAngelfire.class));
         cards.add(new SetCardInfo("Gaea's Touch", 120, Rarity.UNCOMMON, mage.cards.g.GaeasTouch.class));
         cards.add(new SetCardInfo("Ghostly Visit", 67, Rarity.COMMON, mage.cards.g.GhostlyVisit.class));
         cards.add(new SetCardInfo("Ghosts of the Damned", 68, Rarity.COMMON, mage.cards.g.GhostsOfTheDamned.class));
@@ -132,6 +133,7 @@ public class MastersEditionIII extends ExpansionSet {
         cards.add(new SetCardInfo("Guan Yu's 1,000-Li March", 13, Rarity.RARE, mage.cards.g.GuanYus1000LiMarch.class));
         cards.add(new SetCardInfo("Guan Yu, Sainted Warrior", 12, Rarity.UNCOMMON, mage.cards.g.GuanYuSaintedWarrior.class));
         cards.add(new SetCardInfo("Gwendlyn Di Corci", 149, Rarity.RARE, mage.cards.g.GwendlynDiCorci.class));
+        cards.add(new SetCardInfo("Halfdane", 150, Rarity.RARE, mage.cards.h.Halfdane.class));
         cards.add(new SetCardInfo("Hammerheim", 207, Rarity.UNCOMMON, mage.cards.h.Hammerheim.class));
         cards.add(new SetCardInfo("Hazezon Tamar", 151, Rarity.RARE, mage.cards.h.HazezonTamar.class));
         cards.add(new SetCardInfo("Heal", 14, Rarity.COMMON, mage.cards.h.Heal.class));
@@ -183,6 +185,7 @@ public class MastersEditionIII extends ExpansionSet {
         cards.add(new SetCardInfo("Mountain", 225, Rarity.LAND, mage.cards.basiclands.Mountain.class, NON_FULL_USE_VARIOUS));
         cards.add(new SetCardInfo("Mountain", 226, Rarity.LAND, mage.cards.basiclands.Mountain.class, NON_FULL_USE_VARIOUS));
         cards.add(new SetCardInfo("Mountain", 227, Rarity.LAND, mage.cards.basiclands.Mountain.class, NON_FULL_USE_VARIOUS));
+        cards.add(new SetCardInfo("Nebuchadnezzar", 162, Rarity.UNCOMMON, mage.cards.n.Nebuchadnezzar.class));
         cards.add(new SetCardInfo("Nether Void", 73, Rarity.RARE, mage.cards.n.NetherVoid.class));
         cards.add(new SetCardInfo("Nicol Bolas", 163, Rarity.RARE, mage.cards.n.NicolBolas.class));
         cards.add(new SetCardInfo("Nova Pentacle", 200, Rarity.RARE, mage.cards.n.NovaPentacle.class));
@@ -220,8 +223,10 @@ public class MastersEditionIII extends ExpansionSet {
         cards.add(new SetCardInfo("Sivitri Scarzam", 175, Rarity.COMMON, mage.cards.s.SivitriScarzam.class));
         cards.add(new SetCardInfo("Slashing Tiger", 133, Rarity.COMMON, mage.cards.s.SlashingTiger.class));
         cards.add(new SetCardInfo("Sol Grail", 201, Rarity.COMMON, mage.cards.s.SolGrail.class));
+        cards.add(new SetCardInfo("Sorrow's Path", 211, Rarity.RARE, mage.cards.s.SorrowsPath.class));
         cards.add(new SetCardInfo("Spirit Shackle", 74, Rarity.COMMON, mage.cards.s.SpiritShackle.class));
         cards.add(new SetCardInfo("Spoils of Victory", 134, Rarity.COMMON, mage.cards.s.SpoilsOfVictory.class));
+        cards.add(new SetCardInfo("Stangg", 177, Rarity.UNCOMMON, mage.cards.s.Stangg.class));
         cards.add(new SetCardInfo("Stolen Grain", 75, Rarity.UNCOMMON, mage.cards.s.StolenGrain.class));
         cards.add(new SetCardInfo("Storm World", 111, Rarity.RARE, mage.cards.s.StormWorld.class));
         cards.add(new SetCardInfo("Strategic Planning", 51, Rarity.COMMON, mage.cards.s.StrategicPlanning.class));
@@ -231,6 +236,7 @@ public class MastersEditionIII extends ExpansionSet {
         cards.add(new SetCardInfo("Swamp", 222, Rarity.LAND, mage.cards.basiclands.Swamp.class, NON_FULL_USE_VARIOUS));
         cards.add(new SetCardInfo("Swamp", 223, Rarity.LAND, mage.cards.basiclands.Swamp.class, NON_FULL_USE_VARIOUS));
         cards.add(new SetCardInfo("Swamp", 224, Rarity.LAND, mage.cards.basiclands.Swamp.class, NON_FULL_USE_VARIOUS));
+        cards.add(new SetCardInfo("Sword of the Ages", 202, Rarity.RARE, mage.cards.s.SwordOfTheAges.class));
         cards.add(new SetCardInfo("Tetsuo Umezawa", 179, Rarity.RARE, mage.cards.t.TetsuoUmezawa.class));
         cards.add(new SetCardInfo("The Abyss", 77, Rarity.RARE, mage.cards.t.TheAbyss.class));
         cards.add(new SetCardInfo("The Lady of the Mountain", 180, Rarity.COMMON, mage.cards.t.TheLadyOfTheMountain.class));

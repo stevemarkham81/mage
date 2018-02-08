@@ -256,7 +256,7 @@ public class CombatGroup implements Serializable, Copyable<CombatGroup> {
                     if (attacker.getAbilities().containsKey(DeathtouchAbility.getInstance().getId())) {
                         lethalDamage = 1;
                     } else {
-                        lethalDamage = blocker.getToughness().getValue() - blocker.getDamage();
+                        lethalDamage = Math.max(blocker.getToughness().getValue() - blocker.getDamage(), 0);
                     }
                     if (lethalDamage >= damage) {
                         blocker.markDamage(damage, attacker.getId(), game, true, true);
@@ -304,14 +304,14 @@ public class CombatGroup implements Serializable, Copyable<CombatGroup> {
             Map<UUID, Integer> assigned = new HashMap<>();
             if (blocked) {
                 boolean excessDamageToDefender = true;
-                for (UUID blockerId : blockerOrder) {
+                for (UUID blockerId : new ArrayList<>(blockerOrder)) { // prevent ConcurrentModificationException
                     Permanent blocker = game.getPermanent(blockerId);
                     if (blocker != null) {
                         int lethalDamage;
                         if (attacker.getAbilities().containsKey(DeathtouchAbility.getInstance().getId())) {
                             lethalDamage = 1;
                         } else {
-                            lethalDamage = blocker.getToughness().getValue() - blocker.getDamage();
+                            lethalDamage = Math.max(blocker.getToughness().getValue() - blocker.getDamage(), 0);
                         }
                         if (lethalDamage >= damage) {
                             if (!oldRuleDamage) {
@@ -483,7 +483,7 @@ public class CombatGroup implements Serializable, Copyable<CombatGroup> {
                     if (blocker.getAbilities().containsKey(DeathtouchAbility.getInstance().getId())) {
                         lethalDamage = 1;
                     } else {
-                        lethalDamage = attacker.getToughness().getValue() - attacker.getDamage();
+                        lethalDamage = Math.max(attacker.getToughness().getValue() - attacker.getDamage(), 0);
                     }
                     if (lethalDamage >= damage) {
                         assigned.put(attackerId, damage);

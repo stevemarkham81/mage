@@ -4,6 +4,8 @@ import mage.ObjectColor;
 import mage.cards.*;
 import mage.cards.basiclands.BasicLand;
 import mage.constants.CardType;
+import mage.constants.Rarity;
+import mage.constants.SuperType;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -30,6 +32,16 @@ public class VerifyCardDataTest {
     static {
         // skip lists for checks (example: unstable cards with same name may have different stats)
 
+        // TODO: mtgjson have wrong data for UGL
+        // remove after fixed
+        // https://github.com/mtgjson/mtgjson/issues/531
+        // https://github.com/mtgjson/mtgjson/issues/534
+        // https://github.com/mtgjson/mtgjson/issues/535
+
+        // TODO: mtgjson have wrong data to last dino updates from wizards 11.01.2018
+        // remove after fixed
+        // https://github.com/mtgjson/mtgjson/issues/538
+
         // power-toughness
         skipListCreate("PT");
         skipListAddName("PT", "Garbage Elemental"); // UST
@@ -37,19 +49,31 @@ public class VerifyCardDataTest {
 
         // color
         skipListCreate("COLOR");
-        //skipListAddName("COLOR", "Ulrich, Uncontested Alpha"); // gatherer is missing the color indicator on one card and json has wrong data (16.12.2017: not actual)
 
         // cost
         skipListCreate("COST");
 
         // supertype
         skipListCreate("SUPERTYPE");
+        skipListAddName("SUPERTYPE", "Timmy, Power Gamer"); // UGL, mtgjson error
 
         // type
         skipListCreate("TYPE");
+        skipListAddName("TYPE", "Fowl Play"); // UGL, mtgjson error
 
         // subtype
         skipListCreate("SUBTYPE");
+        skipListAddName("SUBTYPE", "Timmy, Power Gamer"); // UGL, mtgjson error
+        skipListAddName("SUBTYPE", "Fowl Play"); // UGL, mtgjson error
+        skipListAddName("SUBTYPE", "Paper Tiger"); // UGL, mtgjson error
+        skipListAddName("SUBTYPE", "Rock Lobster"); // UGL, mtgjson error
+        skipListAddName("SUBTYPE", "Scissors Lizard"); // UGL, mtgjson error
+        skipListAddName("SUBTYPE", "Urza's Science Fair Project"); // UGL, mtgjson error
+        skipListAddName("SUBTYPE", "Ripscale Predator"); // mtgjson error for dino update
+        skipListAddName("SUBTYPE", "Regal Behemoth"); // mtgjson error for dino update
+        skipListAddName("SUBTYPE", "Gnathosaur"); // mtgjson error for dino update
+        skipListAddName("SUBTYPE", "Pteron Ghost"); // mtgjson error for dino update
+
 
         // number
         skipListCreate("NUMBER");
@@ -76,7 +100,7 @@ public class VerifyCardDataTest {
 
     private void fail(Card card, String category, String message) {
         failed++;
-        System.out.println("Error: (" + category + ") " + message + " for " + card.getName());
+        System.out.println("Error: (" + category + ") " + message + " for " + card.getName()  + " (" + card.getExpansionSetCode() + ")");
     }
 
     private int failed = 0;
@@ -152,10 +176,13 @@ public class VerifyCardDataTest {
     public void checkWrongCardClasses(){
         Collection<String> errorsList = new ArrayList<>();
         Map<String, String> classesIndex = new HashMap<>();
+        int totalCards = 0;
 
         Collection<ExpansionSet> sets = Sets.getInstance().values();
         for (ExpansionSet set : sets) {
             for (ExpansionSet.SetCardInfo checkCard : set.getSetCardInfo()) {
+                totalCards = totalCards + 1;
+
                 String currentClass = checkCard.getCardClass().toString();
                 if (classesIndex.containsKey(checkCard.getName())) {
                     String needClass = classesIndex.get(checkCard.getName());
@@ -175,8 +202,42 @@ public class VerifyCardDataTest {
             System.out.println(error);
         }
 
+        // unique cards stats
+        System.out.println("Total unique cards: " + classesIndex.size() + ", total non unique cards (reprints): " + totalCards);
+
         if (errorsList.size() > 0){
             Assert.fail("DB have wrong card classes, founded errors: " + errorsList.size());
+        }
+    }
+
+    @Test
+    public void checkMissingSets(){
+
+        Collection<String> errorsList = new ArrayList<>();
+
+        int totalMissingSets = 0;
+        int totalMissingCards = 0;
+        Collection<ExpansionSet> sets = Sets.getInstance().values();
+        for(Map.Entry<String, JsonSet> refEntry: MtgJson.sets().entrySet()){
+            JsonSet refSet = refEntry.getValue();
+
+            // replace codes for aliases
+            String searchSet = MtgJson.mtgJsonToXMageCodes.getOrDefault(refSet.code, refSet.code);
+
+            ExpansionSet mageSet = Sets.findSet(searchSet);
+            if(mageSet == null){
+                totalMissingSets = totalMissingSets + 1;
+                totalMissingCards = totalMissingCards + refSet.cards.size();
+                errorsList.add("Warning: missing set " + refSet.code + " - " + refSet.name + " (cards: " + refSet.cards.size() + ")");
+            }
+        }
+        if(errorsList.size() > 0){
+            errorsList.add("Warning: total missing sets: " + totalMissingSets + ", with missing cards: " + totalMissingCards);
+        }
+
+        // only warnings
+        for (String error: errorsList) {
+            System.out.println(error);
         }
     }
 
@@ -243,6 +304,7 @@ public class VerifyCardDataTest {
         checkTypes(card, ref);
         checkColors(card, ref);
         //checkNumbers(card, ref); // TODO: load data from allsets.json and check it (allcards.json do not have card numbers)
+        checkBasicLands(card, ref);
     }
 
     private void checkColors(Card card, JsonCard ref) {
@@ -353,6 +415,48 @@ public class VerifyCardDataTest {
         String current = card.getCardNumber();
         if (!eqPT(current, expected)) {
             warn(card, "card number " + current + " != " + expected);
+        }
+    }
+
+    private boolean isBasicLandName(String name) {
+
+        String checkName = name;
+        if (name.startsWith("Snow-Covered ")) {
+            // snow lands is basic lands too
+            checkName = name.replace("Snow-Covered ", "");
+        }
+
+        return checkName.equals("Island") ||
+                checkName.equals("Forest") ||
+                checkName.equals("Swamp") ||
+                checkName.equals("Plains") ||
+                checkName.equals("Mountain") ||
+                checkName.equals("Wastes");
+    }
+
+    private void checkBasicLands(Card card, JsonCard ref) {
+
+        // basic lands must have Rarity.LAND and SuperType.BASIC
+        // other cards can't have that stats
+
+        if (isBasicLandName(card.getName())) {
+            // lands
+            if (card.getRarity() != Rarity.LAND) {
+                fail(card, "rarity", "basic land must be Rarity.LAND");
+            }
+
+            if (!card.getSuperType().contains(SuperType.BASIC)) {
+                fail(card, "supertype", "basic land must be SuperType.BASIC");
+            }
+        } else {
+            // non lands
+            if (card.getRarity() == Rarity.LAND) {
+                fail(card, "rarity", "only basic land can be Rarity.LAND");
+            }
+
+            if (card.getSuperType().contains(SuperType.BASIC)) {
+                fail(card, "supertype", "only basic land can be SuperType.BASIC");
+            }
         }
     }
 

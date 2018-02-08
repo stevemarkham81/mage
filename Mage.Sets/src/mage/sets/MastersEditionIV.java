@@ -30,8 +30,14 @@ package mage.sets;
 import mage.cards.ExpansionSet;
 import mage.cards.a.AesthirGlider;
 import mage.cards.e.EliteCatWarrior;
+import mage.cards.repository.CardCriteria;
+import mage.cards.repository.CardInfo;
+import mage.cards.repository.CardRepository;
 import mage.constants.Rarity;
 import mage.constants.SetType;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
@@ -45,6 +51,8 @@ public class MastersEditionIV extends ExpansionSet {
         return instance;
     }
 
+    protected final List<CardInfo> savedSpecialLand = new ArrayList<>();
+
     private MastersEditionIV() {
         super("Masters Edition IV", "ME4", ExpansionSet.buildDate(2011, 1, 10), SetType.MAGIC_ONLINE);
         this.hasBasicLands = false;
@@ -54,6 +62,7 @@ public class MastersEditionIV extends ExpansionSet {
         this.numBoosterUncommon = 3;
         this.numBoosterRare = 1;
         this.ratioBoosterMythic = 0;
+        this.ratioBoosterSpecialLand = 1; // replace all basic lands
         cards.add(new SetCardInfo("Acid Rain", 36, Rarity.RARE, mage.cards.a.AcidRain.class));
         cards.add(new SetCardInfo("Aesthir Glider", 176, Rarity.COMMON, AesthirGlider.class));
         cards.add(new SetCardInfo("Air Elemental", 37, Rarity.UNCOMMON, mage.cards.a.AirElemental.class));
@@ -279,19 +288,19 @@ public class MastersEditionIV extends ExpansionSet {
         cards.add(new SetCardInfo("Two-Headed Giant of Foriys", 139, Rarity.UNCOMMON, mage.cards.t.TwoHeadedGiantOfForiys.class));
         cards.add(new SetCardInfo("Underground Sea", 256, Rarity.RARE, mage.cards.u.UndergroundSea.class));
         cards.add(new SetCardInfo("Urza's Chalice", 236, Rarity.COMMON, mage.cards.u.UrzasChalice.class));
-        cards.add(new SetCardInfo("Urza's Mine", "257a", Rarity.LAND, mage.cards.u.UrzasMine.class, NON_FULL_USE_VARIOUS));
-        cards.add(new SetCardInfo("Urza's Mine", "257b", Rarity.LAND, mage.cards.u.UrzasMine.class, NON_FULL_USE_VARIOUS));
-        cards.add(new SetCardInfo("Urza's Mine", "257c", Rarity.LAND, mage.cards.u.UrzasMine.class, NON_FULL_USE_VARIOUS));
-        cards.add(new SetCardInfo("Urza's Mine", "257d", Rarity.LAND, mage.cards.u.UrzasMine.class, NON_FULL_USE_VARIOUS));
+        cards.add(new SetCardInfo("Urza's Mine", "257a", Rarity.COMMON, mage.cards.u.UrzasMine.class, NON_FULL_USE_VARIOUS));
+        cards.add(new SetCardInfo("Urza's Mine", "257b", Rarity.COMMON, mage.cards.u.UrzasMine.class, NON_FULL_USE_VARIOUS));
+        cards.add(new SetCardInfo("Urza's Mine", "257c", Rarity.COMMON, mage.cards.u.UrzasMine.class, NON_FULL_USE_VARIOUS));
+        cards.add(new SetCardInfo("Urza's Mine", "257d", Rarity.COMMON, mage.cards.u.UrzasMine.class, NON_FULL_USE_VARIOUS));
         cards.add(new SetCardInfo("Urza's Miter", 237, Rarity.RARE, mage.cards.u.UrzasMiter.class));
-        cards.add(new SetCardInfo("Urza's Power Plant", "258a", Rarity.LAND, mage.cards.u.UrzasPowerPlant.class, NON_FULL_USE_VARIOUS));
-        cards.add(new SetCardInfo("Urza's Power Plant", "258b", Rarity.LAND, mage.cards.u.UrzasPowerPlant.class, NON_FULL_USE_VARIOUS));
-        cards.add(new SetCardInfo("Urza's Power Plant", "258c", Rarity.LAND, mage.cards.u.UrzasPowerPlant.class, NON_FULL_USE_VARIOUS));
-        cards.add(new SetCardInfo("Urza's Power Plant", "258d", Rarity.LAND, mage.cards.u.UrzasPowerPlant.class, NON_FULL_USE_VARIOUS));
-        cards.add(new SetCardInfo("Urza's Tower", "259a", Rarity.LAND, mage.cards.u.UrzasTower.class, NON_FULL_USE_VARIOUS));
-        cards.add(new SetCardInfo("Urza's Tower", "259b", Rarity.LAND, mage.cards.u.UrzasTower.class, NON_FULL_USE_VARIOUS));
-        cards.add(new SetCardInfo("Urza's Tower", "259c", Rarity.LAND, mage.cards.u.UrzasTower.class, NON_FULL_USE_VARIOUS));
-        cards.add(new SetCardInfo("Urza's Tower", "259d", Rarity.LAND, mage.cards.u.UrzasTower.class, NON_FULL_USE_VARIOUS));
+        cards.add(new SetCardInfo("Urza's Power Plant", "258a", Rarity.COMMON, mage.cards.u.UrzasPowerPlant.class, NON_FULL_USE_VARIOUS));
+        cards.add(new SetCardInfo("Urza's Power Plant", "258b", Rarity.COMMON, mage.cards.u.UrzasPowerPlant.class, NON_FULL_USE_VARIOUS));
+        cards.add(new SetCardInfo("Urza's Power Plant", "258c", Rarity.COMMON, mage.cards.u.UrzasPowerPlant.class, NON_FULL_USE_VARIOUS));
+        cards.add(new SetCardInfo("Urza's Power Plant", "258d", Rarity.COMMON, mage.cards.u.UrzasPowerPlant.class, NON_FULL_USE_VARIOUS));
+        cards.add(new SetCardInfo("Urza's Tower", "259a", Rarity.COMMON, mage.cards.u.UrzasTower.class, NON_FULL_USE_VARIOUS));
+        cards.add(new SetCardInfo("Urza's Tower", "259b", Rarity.COMMON, mage.cards.u.UrzasTower.class, NON_FULL_USE_VARIOUS));
+        cards.add(new SetCardInfo("Urza's Tower", "259c", Rarity.COMMON, mage.cards.u.UrzasTower.class, NON_FULL_USE_VARIOUS));
+        cards.add(new SetCardInfo("Urza's Tower", "259d", Rarity.COMMON, mage.cards.u.UrzasTower.class, NON_FULL_USE_VARIOUS));
         cards.add(new SetCardInfo("Veteran Bodyguard", 32, Rarity.RARE, mage.cards.v.VeteranBodyguard.class));
         cards.add(new SetCardInfo("Vibrating Sphere", 238, Rarity.RARE, mage.cards.v.VibratingSphere.class));
         cards.add(new SetCardInfo("Volcanic Island", 260, Rarity.RARE, mage.cards.v.VolcanicIsland.class));
@@ -310,6 +319,20 @@ public class MastersEditionIV extends ExpansionSet {
         cards.add(new SetCardInfo("Xenic Poltergeist", 104, Rarity.UNCOMMON, mage.cards.x.XenicPoltergeist.class));
         cards.add(new SetCardInfo("Yotian Soldier", 240, Rarity.COMMON, mage.cards.y.YotianSoldier.class));
         cards.add(new SetCardInfo("Zombie Master", 105, Rarity.UNCOMMON, mage.cards.z.ZombieMaster.class));
+    }
+
+    @Override
+    public List<CardInfo> getSpecialLand() {
+        // ME4 replace all basic lands with special (1 per booster)
+        // https://mtg.gamepedia.com/Masters_Edition_IV
+
+        if (savedSpecialLand.isEmpty()) {
+            savedSpecialLand.addAll(CardRepository.instance.findCards(new CardCriteria().setCodes(this.code).name("Urza's Mine")));
+            savedSpecialLand.addAll(CardRepository.instance.findCards(new CardCriteria().setCodes(this.code).name("Urza's Power Plant")));
+            savedSpecialLand.addAll(CardRepository.instance.findCards(new CardCriteria().setCodes(this.code).name("Urza's Tower")));
+        }
+
+        return new ArrayList<>(savedSpecialLand);
     }
 
 }

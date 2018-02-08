@@ -36,6 +36,7 @@ import mage.MageObject;
 import mage.Mana;
 import mage.abilities.*;
 import mage.abilities.common.PassAbility;
+import mage.abilities.common.WhileSearchingPlayFromLibraryAbility;
 import mage.abilities.common.delayed.AtTheEndOfTurnStepPostDelayedTriggeredAbility;
 import mage.abilities.costs.*;
 import mage.abilities.costs.mana.ManaCost;
@@ -53,6 +54,7 @@ import mage.cards.Cards;
 import mage.cards.CardsImpl;
 import mage.cards.SplitCard;
 import mage.cards.decks.Deck;
+import mage.choices.ChoiceImpl;
 import mage.constants.*;
 import static mage.constants.Zone.BATTLEFIELD;
 import static mage.constants.Zone.EXILED;
@@ -137,7 +139,7 @@ public abstract class PlayerImpl implements Player, Serializable {
     protected boolean passedUntilEndOfTurn; // F5
     protected boolean passedUntilNextMain; // F7
     protected boolean passedUntilStackResolved; // F10
-    protected Date dateLastAddedToStack; // F10
+    protected Date dateLastAddedToStack;
     protected boolean passedUntilEndStepBeforeMyTurn; // F11
     protected boolean skippedAtLeastOnce; // used to track if passed started in specific phase
     /**
@@ -815,6 +817,11 @@ public abstract class PlayerImpl implements Player, Serializable {
                 Player attachedToPlayer = game.getPlayer(permanent.getAttachedTo());
                 if (attachedToPlayer != null) {
                     attachedToPlayer.removeAttachment(permanent, game);
+                } else {
+                    Card attachedToCard = game.getCard(permanent.getAttachedTo());
+                    if (attachedToCard != null) {
+                        attachedToCard.removeAttachment(permanent.getId(), game);
+                    }
                 }
             }
 
@@ -850,9 +857,13 @@ public abstract class PlayerImpl implements Player, Serializable {
             Cards cards = new CardsImpl(cardsToLibrary); // prevent possible ConcurrentModificationException
             if (!anyOrder) {
                 while (!cards.isEmpty()) {
-                    UUID cardId = cards.getRandom(game).getId();
-                    cards.remove(cardId);
-                    moveObjectToLibrary(cardId, source == null ? null : source.getSourceId(), game, false, false);
+                    Card card = cards.getRandom(game);
+                    if (card != null) {
+                        cards.remove(card);
+                        moveObjectToLibrary(card.getId(), source == null ? null : source.getSourceId(), game, false, false);
+                    } else {
+                        return false;// probably cards were removed because player left the game
+                    }
                 }
             } else {
                 TargetCard target = new TargetCard(Zone.ALL, new FilterCard("card to put on the bottom of your library (last one chosen will be bottommost)"));
@@ -891,9 +902,13 @@ public abstract class PlayerImpl implements Player, Serializable {
             UUID sourceId = (source == null ? null : source.getSourceId());
             if (!anyOrder) {
                 while (!cards.isEmpty()) {
-                    UUID cardId = cards.getRandom(game).getId();
-                    cards.remove(cardId);
-                    moveObjectToLibrary(cardId, source == null ? null : source.getSourceId(), game, true, false);
+                    Card card = cards.getRandom(game);
+                    if (card != null) {
+                        cards.remove(card.getId());
+                        moveObjectToLibrary(card.getId(), source == null ? null : source.getSourceId(), game, true, false);
+                    } else {
+                        return false; // probably cards were removed because player left the game
+                    }
                 }
             } else {
                 TargetCard target = new TargetCard(Zone.LIBRARY, new FilterCard("card to put on the top of your library (last one chosen will be topmost)"));
@@ -1351,6 +1366,9 @@ public abstract class PlayerImpl implements Player, Serializable {
     @Override
     public LinkedHashMap<UUID, ActivatedAbility> getUseableActivatedAbilities(MageObject object, Zone zone, Game game) {
         LinkedHashMap<UUID, ActivatedAbility> useable = new LinkedHashMap<>();
+        if (object instanceof StackAbility) { // It may not be possible to activate abilities of stack actilities
+            return useable;
+        }
         if (object instanceof SplitCard) {
             SplitCard splitCard = (SplitCard) object;
             getUseableActivatedAbilitiesHalfImpl(splitCard.getLeftHalfCard(), zone, game, splitCard.getLeftHalfCard().getAbilities(), useable);
@@ -1858,7 +1876,7 @@ public abstract class PlayerImpl implements Player, Serializable {
                             player.gainLife(actualDamage, game);
                         }
                         // Unstable ability - Earl of Squirrel
-                        if (sourceAbilities.containsKey(SquirrellinkAbility.getInstance().getId())) {
+                        if (sourceAbilities != null && sourceAbilities.containsKey(SquirrellinkAbility.getInstance().getId())) {
                             Player player = game.getPlayer(sourceControllerId);
                             new SquirrelToken().putOntoBattlefield(actualDamage, game, sourceId, player.getId());
                         }
@@ -2096,11 +2114,13 @@ public abstract class PlayerImpl implements Player, Serializable {
                 skippedAtLeastOnce = !(game.getTurn().getStepType() == PhaseStep.POSTCOMBAT_MAIN || game.getTurn().getStepType() == PhaseStep.PRECOMBAT_MAIN);
                 this.skip();
                 break;
-            case PASS_PRIORITY_UNTIL_STACK_RESOLVED: //F8
-                resetPlayerPassedActions();
-                passedUntilStackResolved = true;
-                dateLastAddedToStack = game.getStack().getDateLastAdded();
-                this.skip();
+            case PASS_PRIORITY_UNTIL_STACK_RESOLVED: // Default F10 - Skips until the current stack is resolved
+                if (!game.getStack().isEmpty()) { // If stack is empty do nothing
+                    resetPlayerPassedActions();
+                    passedUntilStackResolved = true;
+                    dateLastAddedToStack = game.getStack().getDateLastAdded();
+                    this.skip();
+                }
                 break;
             case PASS_PRIORITY_UNTIL_END_STEP_BEFORE_MY_NEXT_TURN: //F11
                 resetPlayerPassedActions();
@@ -2307,26 +2327,99 @@ public abstract class PlayerImpl implements Player, Serializable {
             TargetCardInLibrary newTarget = target.copy();
             int count;
             int librarySearchLimit = event.getAmount();
-            if (librarySearchLimit == Integer.MAX_VALUE) {
-                count = searchedLibrary.count(target.getFilter(), game);
-            } else {
-                newTarget.setCardLimit(librarySearchLimit);
-                count = Math.min(searchedLibrary.count(target.getFilter(), game), librarySearchLimit);
-            }
-
-            if (count < target.getNumberOfTargets()) {
-                newTarget.setMinNumberOfTargets(count);
-            }
-            if (newTarget.choose(Outcome.Neutral, playerId, targetPlayerId, game)) {
-                target.getTargets().clear();
-                for (UUID targetId : newTarget.getTargets()) {
-                    target.add(targetId, game);
+            List<Card> cardsFromTop = null;
+            do {
+                // TODO: prevent shuffling from moving the visualized cards
+                if (librarySearchLimit == Integer.MAX_VALUE) {
+                    count = searchedLibrary.count(target.getFilter(), game);
+                } else {
+                    Player targetPlayer = game.getPlayer(targetPlayerId);
+                    if (targetPlayer != null) {
+                        if (cardsFromTop == null) {
+                            cardsFromTop = new ArrayList<>(targetPlayer.getLibrary().getTopCards(game, librarySearchLimit));
+                        } else {
+                            cardsFromTop.retainAll(targetPlayer.getLibrary().getCards(game));
+                        }
+                    }
+                    newTarget.setCardLimit(Math.min(librarySearchLimit, cardsFromTop.size()));
+                    count = Math.min(searchedLibrary.count(target.getFilter(), game), librarySearchLimit);
                 }
-                game.fireEvent(GameEvent.getEvent(GameEvent.EventType.LIBRARY_SEARCHED, targetPlayerId, playerId));
-            }
+
+                if (count < target.getNumberOfTargets()) {
+                    newTarget.setMinNumberOfTargets(count);
+                }
+                if (newTarget.choose(Outcome.Neutral, playerId, targetPlayerId, game)) {
+                    if (targetPlayerId.equals(playerId) && handleLibraryCastableCards(library, game, targetPlayerId)) { // for handling Panglacial Wurm
+                        newTarget.clearChosen();
+                        continue;
+                    }
+                    target.getTargets().clear();
+                    for (UUID targetId : newTarget.getTargets()) {
+                        target.add(targetId, game);
+                    }
+                    game.fireEvent(GameEvent.getEvent(GameEvent.EventType.LIBRARY_SEARCHED, targetPlayerId, playerId));
+                } else if (targetPlayerId.equals(playerId) && handleLibraryCastableCards(library, game, targetPlayerId)) { // for handling Panglacial Wurm
+                    newTarget.clearChosen();
+                    continue;
+                }
+                break;
+            } while (true);
             return true;
         }
         return false;
+    }
+
+    private boolean handleLibraryCastableCards(Library library, Game game, UUID targetPlayerId) {
+        // for handling Panglacial Wurm
+        boolean alreadyChosenUse = false;
+        Map<UUID, String> libraryCastableCardTracker = new HashMap<>();
+        searchForCards:
+        do {
+            for (Card card : library.getCards(game)) {
+                for (Ability ability : card.getAbilities()) {
+                    if (ability.getClass() == WhileSearchingPlayFromLibraryAbility.class) {
+                        libraryCastableCardTracker.put(card.getId(), card.getName() + " [" + card.getId().toString().substring(0, 3) + "]");
+                    }
+                }
+            }
+            if (!libraryCastableCardTracker.isEmpty()) {
+                Player player = game.getPlayer(targetPlayerId);
+                if (player != null) {
+                    if (player.isHuman() && (alreadyChosenUse || player.chooseUse(Outcome.AIDontUseIt, "Cast a creature card from your library? (choose \"No\" to finish search)", null, game))) {
+                        ChoiceImpl chooseCard = new ChoiceImpl();
+                        chooseCard.setMessage("Which creature do you wish to cast from your library?");
+                        Set<String> choice = new LinkedHashSet<>();
+                        for (Entry<UUID, String> entry : libraryCastableCardTracker.entrySet()) {
+                            choice.add(new AbstractMap.SimpleEntry<UUID, String>(entry).getValue());
+                        }
+                        chooseCard.setChoices(choice);
+                        while (!choice.isEmpty()) {
+                            if (player.choose(Outcome.AIDontUseIt, chooseCard, game)) {
+                                String chosenCard = chooseCard.getChoice();
+                                for (Entry<UUID, String> entry : libraryCastableCardTracker.entrySet()) {
+                                    if (chosenCard.equals(entry.getValue())) {
+                                        Card card = game.getCard(entry.getKey());
+                                        if (card != null) {
+                                            // TODO: fix costs (why is Panglacial Wurm automatically accepting payment?)
+                                            player.cast(card.getSpellAbility(), game, false);
+                                        }
+                                        chooseCard.clearChoice();
+                                        libraryCastableCardTracker.clear();
+                                        alreadyChosenUse = true;
+                                        continue searchForCards;
+                                    }
+                                }
+                                continue;
+                            }
+                            break;
+                        }
+                        return true;
+                    }
+                }
+            }
+            break;
+        } while (alreadyChosenUse);
+        return alreadyChosenUse;
     }
 
     @Override
@@ -2439,6 +2532,10 @@ public abstract class PlayerImpl implements Player, Serializable {
         for (Abilities<ActivatedManaAbilityImpl> manaAbilities : sourceWithCosts) {
             available.addManaWithCost(manaAbilities, game);
         }
+
+        // remove duplicated variants (see ManaOptionsTest for info - when thats rises)
+        available.removeDuplicated();
+
         return available;
     }
 
@@ -3199,9 +3296,7 @@ public abstract class PlayerImpl implements Player, Serializable {
     }
 
     @Override
-    public boolean moveCards(Card card, Zone toZone,
-            Ability source, Game game
-    ) {
+    public boolean moveCards(Card card, Zone toZone, Ability source, Game game) {
         return moveCards(card, toZone, source, game, false, false, false, null);
     }
 
@@ -3688,5 +3783,23 @@ public abstract class PlayerImpl implements Player, Serializable {
     @Override
     public List<Designation> getDesignations() {
         return designations;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        PlayerImpl obj = (PlayerImpl) o;
+        if (this.getId() == null || obj.getId() == null) {
+            return false;
+        }
+
+        return this.getId().equals(obj.getId());
     }
 }

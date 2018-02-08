@@ -93,6 +93,7 @@ public class MastersEditionII extends ExpansionSet {
         cards.add(new SetCardInfo("Brassclaw Orcs", 119, Rarity.COMMON, BrassclawOrcs.class));
         cards.add(new SetCardInfo("Brimstone Dragon", 120, Rarity.RARE, mage.cards.b.BrimstoneDragon.class));
         cards.add(new SetCardInfo("Brine Shaman", 80, Rarity.COMMON, mage.cards.b.BrineShaman.class));
+        cards.add(new SetCardInfo("Broken Visage", 81, Rarity.UNCOMMON, mage.cards.b.BrokenVisage.class));
         cards.add(new SetCardInfo("Browse", 43, Rarity.UNCOMMON, mage.cards.b.Browse.class));
         cards.add(new SetCardInfo("Burnout", 121, Rarity.UNCOMMON, mage.cards.b.Burnout.class));
         cards.add(new SetCardInfo("Carapace", 155, Rarity.COMMON, mage.cards.c.Carapace.class));
@@ -176,6 +177,7 @@ public class MastersEditionII extends ExpansionSet {
         cards.add(new SetCardInfo("Krovikan Sorcerer", 51, Rarity.COMMON, mage.cards.k.KrovikanSorcerer.class));
         cards.add(new SetCardInfo("Leaping Lizard", 171, Rarity.COMMON, mage.cards.l.LeapingLizard.class));
         cards.add(new SetCardInfo("Lim-Dul's High Guard", 103, Rarity.UNCOMMON, LimDulsHighGuard.class));
+        cards.add(new SetCardInfo("Lodestone Bauble", 213, Rarity.RARE, mage.cards.l.LodestoneBauble.class));
         cards.add(new SetCardInfo("Magus of the Unseen", 53, Rarity.RARE, mage.cards.m.MagusOfTheUnseen.class));
         cards.add(new SetCardInfo("Mana Crypt", 214, Rarity.RARE, mage.cards.m.ManaCrypt.class));
         cards.add(new SetCardInfo("Marjhan", 54, Rarity.RARE, mage.cards.m.Marjhan.class));
